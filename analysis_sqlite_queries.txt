@@ -1,0 +1,99 @@
+## 1. Top 10 Products with the Most Reviews
+
+SELECT product_title, COUNT(*) AS review_count
+FROM amazon_reviews
+GROUP BY product_title
+ORDER BY review_count DESC
+LIMIT 10;
+
+## 2. Average Review Ratings Per Month for Each Product
+
+SELECT 
+    product_title,
+    strftime('%Y-%m', review_date) AS review_month,
+    AVG(star_rating) AS avg_rating
+FROM amazon_reviews
+GROUP BY product_title, review_month
+ORDER BY product_title, review_month;
+
+
+## 3. Total Number of Votes Per Product Category
+
+SELECT product_category, SUM(total_votes) AS total_votes_sum
+FROM amazon_reviews
+GROUP BY product_category
+ORDER BY total_votes_sum DESC;
+
+## 4. Products with the Word "Awful" Occurring Most Frequently in Reviews
+
+SELECT product_title, COUNT(*) AS awful_mentions
+FROM amazon_reviews
+WHERE LOWER(review_body) LIKE '%awful%'
+GROUP BY product_title
+ORDER BY awful_mentions DESC
+LIMIT 10;
+
+## 5. Products with the Word "Awesome" Occurring Most Frequently in Reviews
+
+SELECT product_title, COUNT(*) AS awesome_mentions
+FROM amazon_reviews
+WHERE LOWER(review_body) LIKE '%awesome%'
+GROUP BY product_title
+ORDER BY awesome_mentions DESC
+LIMIT 10;
+
+## 6. Most Controversial Reviews (High Total Votes but Low Helpful Votes Percentage)
+
+SELECT 
+    review_id,
+    product_title,
+    total_votes,
+    helpful_votes,
+    (CAST(helpful_votes AS FLOAT) / total_votes) * 100 AS helpful_percentage
+FROM amazon_reviews
+WHERE total_votes > 50   -- threshold for "high votes"
+ORDER BY helpful_percentage ASC, total_votes DESC
+LIMIT 10;
+
+## 7. Most Commonly Reviewed Product Per Year
+
+SELECT review_year, product_title, review_count
+FROM (
+    SELECT 
+        strftime('%Y', review_date) AS review_year,
+        product_title,
+        COUNT(*) AS review_count,
+        ROW_NUMBER() OVER (
+            PARTITION BY strftime('%Y', review_date) 
+            ORDER BY COUNT(*) DESC
+        ) AS rn
+    FROM amazon_reviews
+    GROUP BY review_year, product_title
+) t
+WHERE rn = 1;
+
+
+## 8. Find Users Who Wrote the Most Reviews
+
+SELECT customer_id, COUNT(*) AS review_count
+FROM amazon_reviews
+GROUP BY customer_id
+ORDER BY review_count DESC
+LIMIT 10;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
